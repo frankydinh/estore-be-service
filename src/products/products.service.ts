@@ -6,6 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { Product } from './entities/product.entity';
 import { PaginatedResponse } from '../common/interfaces';
+import { ProductStatus } from '../common/enums';
 
 @Injectable()
 export class ProductsService {
@@ -94,7 +95,7 @@ export class ProductsService {
 
   async getRecommended(limit: number = 10): Promise<Product[]> {
     return this.productRepository.find({
-      where: { status: 'active' as any },
+      where: { status: ProductStatus.ACTIVE },
       order: { orderCount: 'DESC', rating: 'DESC' },
       take: limit,
     });

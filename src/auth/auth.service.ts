@@ -103,15 +103,14 @@ export class AuthService {
       if (existingUser) {
         existingUser.googleId = profile.googleId;
         existingUser.avatar = profile.avatar;
-        const savedUser = await this.userRepository.save(existingUser);
-        user = Array.isArray(savedUser) ? savedUser[0] : savedUser;
+        user = await this.userRepository.save(existingUser);
       } else {
         const newUser = this.userRepository.create({
           ...profile,
           role: UserRole.USER,
         });
         const savedUser = await this.userRepository.save(newUser);
-        user = Array.isArray(savedUser) ? savedUser[0] : savedUser;
+        user = savedUser as unknown as User;
       }
     }
 
@@ -135,15 +134,14 @@ export class AuthService {
       if (existingUser) {
         existingUser.facebookId = profile.facebookId;
         existingUser.avatar = profile.avatar;
-        const savedUser = await this.userRepository.save(existingUser);
-        user = Array.isArray(savedUser) ? savedUser[0] : savedUser;
+        user = await this.userRepository.save(existingUser);
       } else {
         const newUser = this.userRepository.create({
           ...profile,
           role: UserRole.USER,
         });
         const savedUser = await this.userRepository.save(newUser);
-        user = Array.isArray(savedUser) ? savedUser[0] : savedUser;
+        user = savedUser as unknown as User;
       }
     }
 
