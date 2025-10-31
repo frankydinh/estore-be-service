@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   ManyToMany,
+  JoinColumn,
 } from 'typeorm';
 import { ProductStatus } from '../../common/enums';
 import { Category } from '../../categories/entities/category.entity';
@@ -57,7 +58,11 @@ export class Product {
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'SET NULL',
   })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
+
+  @Column({ nullable: true })
+  categoryId: number;
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
   orderItems: OrderItem[];
