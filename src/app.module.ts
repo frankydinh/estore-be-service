@@ -11,7 +11,7 @@ import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
 import { DiscountsModule } from './discounts/discounts.module';
-import { WebsocketGateway } from './websocket/websocket.gateway';
+import { WebsocketModule } from './websocket/websocket.module';
 import { getDatabaseConfig } from './config/database.config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -40,11 +40,11 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     CategoriesModule,
     OrdersModule,
     DiscountsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    WebsocketGateway,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
