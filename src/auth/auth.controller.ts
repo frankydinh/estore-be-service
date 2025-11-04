@@ -72,7 +72,7 @@ export class AuthController {
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Login with Google' })
-  async googleAuth() {
+  googleAuth() {
     // Guard redirects to Google
   }
 
@@ -94,7 +94,7 @@ export class AuthController {
   @Get('facebook')
   @UseGuards(AuthGuard('facebook'))
   @ApiOperation({ summary: 'Login with Facebook' })
-  async facebookAuth() {
+  facebookAuth() {
     // Guard redirects to Facebook
   }
 
