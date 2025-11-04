@@ -1,3 +1,6 @@
+import { Request } from 'express';
+import { User } from '../../users/entities/user.entity';
+
 export interface JwtPayload {
   sub: number;
   email: string;
@@ -22,4 +25,24 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface GoogleProfile {
+  googleId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatar: string;
+}
+
+export interface FacebookProfile {
+  facebookId: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+}
+
+export interface RequestWithUser extends Request {
+  user: User;
 }

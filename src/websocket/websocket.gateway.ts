@@ -11,6 +11,13 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtPayload } from '../common/interfaces';
+
+interface AuthenticatedSocket extends Socket {
+  data: {
+    user?: JwtPayload;
+  };
+}
 
 @WebSocketGateway({
   cors: {
@@ -25,29 +32,29 @@ export class WebsocketGateway
   server: Server;
 
   private logger = new Logger('WebSocketGateway');
-  private clients: Map<string, Socket> = new Map();
+  private clients: Map<string, AuthenticatedSocket> = new Map();
 
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: AuthenticatedSocket): void {
+    const token =
+      (client.handshake.auth.token as string | undefined) ||
+      client.handshake.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      this.logger.warn(
+        `Client ${client.id} attempted to connect without token`,
+      );
+      void client.disconnect();
+      return;
+    }
+
     try {
-      const token =
-        client.handshake.auth.token ||
-        client.handshake.headers.authorization?.split(' ')[1];
-
-      if (!token) {
-        this.logger.warn(
-          `Client ${client.id} attempted to connect without token`,
-        );
-        client.disconnect();
-        return;
-      }
-
-      const payload = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
+      const payload = this.jwtService.verify<JwtPayload>(token, {
+        secret: this.configService.get<string>('JWT_SECRET') || '',
       });
 
       client.data.user = payload;
@@ -58,14 +65,14 @@ export class WebsocketGateway
       );
 
       // Join user to their personal room
-      client.join(`user_${payload.sub}`);
+      void client.join(`user_${payload.sub}`);
     } catch (error) {
       this.logger.error(`Authentication error for client ${client.id}:`, error);
-      client.disconnect();
+      void client.disconnect();
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: AuthenticatedSocket): void {
     this.clients.delete(client.id);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
@@ -73,9 +80,9 @@ export class WebsocketGateway
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
     @MessageBody() room: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    client.join(room);
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ): { event: string; data: string } {
+    void client.join(room);
     this.logger.log(`Client ${client.id} joined room: ${room}`);
     return { event: 'joinedRoom', data: room };
   }
@@ -83,9 +90,9 @@ export class WebsocketGateway
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(
     @MessageBody() room: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    client.leave(room);
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ): { event: string; data: string } {
+    void client.leave(room);
     this.logger.log(`Client ${client.id} left room: ${room}`);
     return { event: 'leftRoom', data: room };
   }
@@ -93,25 +100,27 @@ export class WebsocketGateway
   @SubscribeMessage('message')
   handleMessage(
     @MessageBody() data: { room: string; message: string },
-    @ConnectedSocket() client: Socket,
-  ) {
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ): { event: string; data: string } {
     const user = client.data.user;
-    this.server.to(data.room).emit('message', {
-      user: user.email,
-      message: data.message,
-      timestamp: new Date(),
-    });
+    if (user) {
+      this.server.to(data.room).emit('message', {
+        user: user.email,
+        message: data.message,
+        timestamp: new Date(),
+      });
+    }
     return { event: 'messageSent', data: 'Message sent successfully' };
   }
 
   // Method to send order updates to specific user
-  sendOrderUpdate(userId: number, orderData: any) {
+  sendOrderUpdate(userId: number, orderData: unknown): void {
     this.server.to(`user_${userId}`).emit('orderUpdate', orderData);
     this.logger.log(`Order update sent to user ${userId}`);
   }
 
   // Method to broadcast system notifications
-  broadcastNotification(message: string) {
+  broadcastNotification(message: string): void {
     this.server.emit('notification', {
       message,
       timestamp: new Date(),

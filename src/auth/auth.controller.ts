@@ -23,6 +23,16 @@ import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { Public } from '../common/decorators/roles.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { GoogleProfile, FacebookProfile } from '../common/interfaces';
+import { User } from '../users/entities/user.entity';
+
+interface GoogleOAuthRequest extends Request {
+  user: GoogleProfile;
+}
+
+interface FacebookOAuthRequest extends Request {
+  user: FacebookProfile;
+}
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -70,7 +80,10 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google OAuth callback' })
-  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
+  async googleAuthRedirect(
+    @Req() req: GoogleOAuthRequest,
+    @Res() res: Response,
+  ) {
     const tokens = await this.authService.googleLogin(req.user);
     res.redirect(
       `${process.env.FRONTEND_URL}/auth/callback?token=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
@@ -89,7 +102,10 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))
   @ApiOperation({ summary: 'Facebook OAuth callback' })
-  async facebookAuthRedirect(@Req() req: any, @Res() res: Response) {
+  async facebookAuthRedirect(
+    @Req() req: FacebookOAuthRequest,
+    @Res() res: Response,
+  ) {
     const tokens = await this.authService.facebookLogin(req.user);
     res.redirect(
       `${process.env.FRONTEND_URL}/auth/callback?token=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
@@ -109,7 +125,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Returns user profile' })
-  async getProfile(@GetUser() user: any) {
+  getProfile(@GetUser() user: User): User {
     return user;
   }
 }
