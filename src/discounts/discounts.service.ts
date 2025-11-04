@@ -5,7 +5,7 @@ import { UpdateDiscountDto } from './dto/update-discount.dto';
 @Injectable()
 export class DiscountsService {
   // TODO: Implement discount creation with validation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   create(_createDiscountDto: CreateDiscountDto) {
     return 'This action adds a new discount';
   }
@@ -21,7 +21,7 @@ export class DiscountsService {
   }
 
   // TODO: Implement discount update with validation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   update(id: number, _updateDiscountDto: UpdateDiscountDto) {
     return `This action updates a #${id} discount`;
   }
