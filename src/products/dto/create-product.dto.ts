@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsEnum, IsArray, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ProductStatus } from '../../common/enums';
 
@@ -8,7 +16,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'Latest iPhone with advanced camera system', required: false })
+  @ApiProperty({
+    example: 'Latest iPhone with advanced camera system',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;
@@ -41,7 +52,10 @@ export class CreateProductDto {
   @IsOptional()
   status?: ProductStatus;
 
-  @ApiProperty({ example: { color: 'Space Gray', storage: '256GB' }, required: false })
+  @ApiProperty({
+    example: { color: 'Space Gray', storage: '256GB' },
+    required: false,
+  })
   @IsOptional()
   specifications?: Record<string, string>;
 

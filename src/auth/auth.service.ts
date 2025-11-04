@@ -11,7 +11,12 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtPayload, TokenResponse } from '../common/interfaces';
+import {
+  JwtPayload,
+  TokenResponse,
+  GoogleProfile,
+  FacebookProfile,
+} from '../common/interfaces';
 import { UserRole } from '../common/enums';
 
 @Injectable()
@@ -72,7 +77,7 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     try {
-      const payload = this.jwtService.verify(refreshToken, {
+      const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
 
@@ -85,32 +90,41 @@ export class AuthService {
       }
 
       return this.generateTokens(user);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
-  async googleLogin(profile: any): Promise<TokenResponse> {
+  async googleLogin(profile: GoogleProfile | User): Promise<TokenResponse> {
+    // If already a User entity, just generate tokens
+    if ('id' in profile && profile.id) {
+      return this.generateTokens(profile);
+    }
+
+    const googleProfile = profile as GoogleProfile;
     let user: User | null = await this.userRepository.findOne({
-      where: { googleId: profile.googleId },
+      where: { googleId: googleProfile.googleId },
     });
 
     if (!user) {
       const existingUser = await this.userRepository.findOne({
-        where: { email: profile.email },
+        where: { email: googleProfile.email },
       });
 
       if (existingUser) {
-        existingUser.googleId = profile.googleId;
-        existingUser.avatar = profile.avatar;
+        existingUser.googleId = googleProfile.googleId;
+        existingUser.avatar = googleProfile.avatar;
         user = await this.userRepository.save(existingUser);
       } else {
         const newUser = this.userRepository.create({
-          ...profile,
+          email: googleProfile.email,
+          firstName: googleProfile.firstName,
+          lastName: googleProfile.lastName,
+          googleId: googleProfile.googleId,
+          avatar: googleProfile.avatar,
           role: UserRole.USER,
         });
-        const savedUser = await this.userRepository.save(newUser);
-        user = savedUser as unknown as User;
+        user = await this.userRepository.save(newUser);
       }
     }
 
@@ -121,27 +135,42 @@ export class AuthService {
     return this.generateTokens(user);
   }
 
-  async facebookLogin(profile: any): Promise<TokenResponse> {
+  async facebookLogin(profile: FacebookProfile | User): Promise<TokenResponse> {
+    // If already a User entity, just generate tokens
+    if ('id' in profile && profile.id) {
+      return this.generateTokens(profile);
+    }
+
+    const facebookProfile = profile as FacebookProfile;
     let user: User | null = await this.userRepository.findOne({
-      where: { facebookId: profile.facebookId },
+      where: { facebookId: facebookProfile.facebookId },
     });
 
     if (!user) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: profile.email },
-      });
+      const existingUser = facebookProfile.email
+        ? await this.userRepository.findOne({
+            where: { email: facebookProfile.email },
+          })
+        : null;
 
       if (existingUser) {
-        existingUser.facebookId = profile.facebookId;
-        existingUser.avatar = profile.avatar;
+        existingUser.facebookId = facebookProfile.facebookId;
+        if (facebookProfile.avatar) {
+          existingUser.avatar = facebookProfile.avatar;
+        }
         user = await this.userRepository.save(existingUser);
       } else {
         const newUser = this.userRepository.create({
-          ...profile,
+          email:
+            facebookProfile.email ||
+            `facebook_${facebookProfile.facebookId}@temp.com`,
+          firstName: facebookProfile.firstName,
+          lastName: facebookProfile.lastName,
+          facebookId: facebookProfile.facebookId,
+          avatar: facebookProfile.avatar,
           role: UserRole.USER,
         });
-        const savedUser = await this.userRepository.save(newUser);
-        user = savedUser as unknown as User;
+        user = await this.userRepository.save(newUser);
       }
     }
 

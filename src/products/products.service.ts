@@ -20,7 +20,9 @@ export class ProductsService {
     return this.productRepository.save(product);
   }
 
-  async findAll(queryDto: QueryProductDto): Promise<PaginatedResponse<Product>> {
+  async findAll(
+    queryDto: QueryProductDto,
+  ): Promise<PaginatedResponse<Product>> {
     const {
       search,
       categoryId,
@@ -101,7 +103,10 @@ export class ProductsService {
     });
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const product = await this.findOne(id);
     Object.assign(product, updateProductDto);
     return this.productRepository.save(product);

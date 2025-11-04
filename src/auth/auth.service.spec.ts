@@ -94,7 +94,10 @@ describe('AuthService', () => {
         password: 'password123',
       };
 
-      mockUserRepository.findOne.mockResolvedValue({ id: 1, email: registerDto.email });
+      mockUserRepository.findOne.mockResolvedValue({
+        id: 1,
+        email: registerDto.email,
+      });
 
       await expect(service.register(registerDto)).rejects.toThrow(
         ConflictException,

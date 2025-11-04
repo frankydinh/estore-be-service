@@ -20,8 +20,15 @@ export class UsersService {
   }
 
   async findAll(queryDto: QueryUserDto): Promise<PaginatedResponse<User>> {
-    const { search, role, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = queryDto;
-    
+    const {
+      search,
+      role,
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = queryDto;
+
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
     if (search) {
