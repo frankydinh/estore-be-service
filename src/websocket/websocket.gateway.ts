@@ -34,10 +34,14 @@ export class WebsocketGateway
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token || client.handshake.headers.authorization?.split(' ')[1];
-      
+      const token =
+        client.handshake.auth.token ||
+        client.handshake.headers.authorization?.split(' ')[1];
+
       if (!token) {
-        this.logger.warn(`Client ${client.id} attempted to connect without token`);
+        this.logger.warn(
+          `Client ${client.id} attempted to connect without token`,
+        );
         client.disconnect();
         return;
       }
@@ -49,8 +53,10 @@ export class WebsocketGateway
       client.data.user = payload;
       this.clients.set(client.id, client);
 
-      this.logger.log(`Client connected: ${client.id} (User: ${payload.email})`);
-      
+      this.logger.log(
+        `Client connected: ${client.id} (User: ${payload.email})`,
+      );
+
       // Join user to their personal room
       client.join(`user_${payload.sub}`);
     } catch (error) {
