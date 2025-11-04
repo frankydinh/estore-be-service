@@ -5,7 +5,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 @Injectable()
 export class OrdersService {
   // TODO: Implement order creation with transactional logic
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   create(_createOrderDto: CreateOrderDto) {
     return 'This action adds a new order';
   }
@@ -21,7 +21,7 @@ export class OrdersService {
   }
 
   // TODO: Implement order update with status workflow
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   update(id: number, _updateOrderDto: UpdateOrderDto) {
     return `This action updates a #${id} order`;
   }
